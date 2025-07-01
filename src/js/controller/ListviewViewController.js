@@ -26,7 +26,7 @@ export default class ListviewViewController extends mwf.ViewController {
 
         /* 12. Durch Klick auf "+" wird neues MediaItem erstellt */
         const addNewItemAction = this.root.querySelector("#myapp-addNewItem");
-        addNewItemAction.onclick = () => {
+        addNewItemAction.onclick = async () => {
             /*// alert("new add!");
             const newItem = new entities.MediaItem("lorem epsum", "https://picsum.photos/100/100");
             console.log("adding: ", newItem);
@@ -37,9 +37,12 @@ export default class ListviewViewController extends mwf.ViewController {
             newItem.create().then(() => this.addToListview(newItem));*/
 
             const newItem = new entities.MediaItem("lorem", "https://picsum.photos/100/100");
-            this.showDialog("myapp-mediaitem-dialog", {
+            const dialogResult = await this.showDialog("myapp-mediaitem-dialog", {
                 itemToBeEdited: newItem
             });
+            if (dialogResult && dialogResult.returnStatus === "itemUpdated") {
+                await this.reloadList();
+            }
         }
 
         const toggle = this.root.querySelector("#myapp-filter-toggle");

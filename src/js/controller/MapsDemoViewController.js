@@ -7,6 +7,7 @@ import * as entities from "../model/MyEntities.js";
 
 export let mapController;
 export let mapView; /* Das ist das DOM-Element in dem die Karte dargestellt ist. Dann muss man das sozusagen rein pasten.*/
+export let markerMap = new Map();
 
 export default class MapsDemoViewController extends mwf.ViewController {
 
@@ -56,18 +57,26 @@ export default class MapsDemoViewController extends mwf.ViewController {
 
         const items = await entities.MediaItem.readAll();
 
+        const existingIds = new Set(items.map(it => it._id));
+
+        for (const [id, marker] of markerMap.entries()) {
+            if (!existingIds.has(id)) {
+                mapController.removeLayer(marker);
+                markerMap.delete(id);
+            }
+        }
+
         for (let item of items) {
             if (!item.latlng) {
                 item.latlng = {
-                    lat: 52.5200,
-                    lng: 13.4050
+                    lat: 52.3 + Math.random() * 0.3,
+                    lng: 13.2 + Math.random() * 0.4
                 };
                 await item.update();
             }
-            console.log("prüfe item: ", item);
 
-
-            const marker = L.marker([item.latlng.lat, item.latlng.lng]).addTo(mapController);
+            const latlng = [item.latlng.lat, item.latlng.lng];
+            let marker = markerMap.get(item._id);
 
             const markerPopup = document.createElement("div");
             markerPopup.classList.add("myapp-marker-popup");
@@ -86,7 +95,14 @@ export default class MapsDemoViewController extends mwf.ViewController {
                 this.nextView("myapp-readview", { item: item });
             };
 
-            marker.bindPopup(markerPopup);
+            if (marker) {
+                marker.setLatLng(latlng);
+                marker.bindPopup(markerPopup);
+            } else {
+                marker = L.marker(latlng).addTo(mapController);
+                marker.bindPopup(markerPopup);
+                markerMap.set(item._id, marker);
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import {mwfUtils} from "vfh-iam-mwf-base";
 import {LocalFileSystemReferenceHandler} from "../model/LocalFileSystemReferenceHandler";
 import * as entities from "../model/MyEntities.js";
 import {GenericDialogTemplateViewController} from "vfh-iam-mwf-base";
+import ExifReader from "exifreader";
 
 export default class EditDialogViewController extends GenericDialogTemplateViewController {
 
@@ -50,12 +51,31 @@ export default class EditDialogViewController extends GenericDialogTemplateViewC
         }*/
 
         // Bildauswahl
-        this.root.viewProxy.bindAction("fileSelected", (evt) => {
+        this.root.viewProxy.bindAction("fileSelected", async (evt) => {
             const file = evt.original.target.files[0];
             if (!file) return;
 
             item.src = URL.createObjectURL(file);
             item.imgFile = file;
+
+            try {
+                const tags = await ExifReader.load(file);
+                const latTag = tags["GPSLatitude"] || tags["gpsLatitude"];
+                const lonTag = tags["GPSLongitude"] || tags["gpsLongitude"];
+                if (latTag && lonTag) {
+                    const lat = this._convertDMS(latTag.description || latTag.value);
+                    const lng = this._convertDMS(lonTag.description || lonTag.value);
+                    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                        item.latlng = {lat, lng};
+                    }
+                }
+                if (!item.latlng) {
+                    item.latlng = {lat: 52.52, lng: 13.405};
+                }
+            } catch (e) {
+                console.log("EXIF read failed", e);
+                item.latlng = {lat: 52.52, lng: 13.405};
+            }
 
             if (!item.title || item.title.trim() === "") {
                 const nameWithoutExt = file.name.split(".").slice(0, -1).join(".");
@@ -124,6 +144,14 @@ export default class EditDialogViewController extends GenericDialogTemplateViewC
                 }
             }
 
+            if (!item.latlng) {
+
+                const randomLat = 52.3 + Math.random() * 0.3;
+                const randomLng = 13.2 + Math.random() * 0.4;
+
+                item.latlng = { lat: randomLat, lng: randomLng };
+            }
+
 
             // Speichern und Dialog schließen
             await (item.created ? item.update() : item.create());
@@ -143,5 +171,35 @@ export default class EditDialogViewController extends GenericDialogTemplateViewC
         await super.onpause();
         console.log("onpause(): ", this);
     }
+
+    /*_convertDMS(value) {
+        if (Array.isArray(value)) {
+            const vals = value.map(v => {
+                if (typeof v === 'object' && v.numerator && v.denominator) {
+                    return v.numerator / v.denominator;
+                }
+                return parseFloat(v);
+            });
+            const [d, m = 0, s = 0] = vals;
+            return d + m / 60 + s / 3600;
+        }
+        if (typeof value === 'string') {
+            const parts = value.match(/([0-9.]+)/g);
+            if (parts) {
+                const d = parseFloat(parts[0]);
+                const m = parseFloat(parts[1] || '0');
+                const s = parseFloat(parts[2] || '0');
+                let dec = d + m / 60 + s / 3600;
+                if (/[SW]/i.test(value)) {
+                    dec = -dec;
+                }
+                return dec;
+            }
+        }
+        if (typeof value === 'number') {
+            return value;
+        }
+        return NaN;
+    }*/
 
 }
