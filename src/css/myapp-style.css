@@ -1,0 +1,71 @@
+/* ===================== */
+/* BILDER IN LISTEN UND DETAILS */
+#myapp-listview main li img {
+    height: 45px;
+    width: 45px;
+    object-fit: cover;
+}
+
+#myapp-readview main img {
+    width: 100%;
+}
+
+/* ===================== */
+/* MAP & POPUP */
+#myapp-maproot {
+    width: 100%;
+    height: 100%;
+}
+
+.myapp-marker-popup img {
+    max-width: 250px;
+}
+
+/* ===================== */
+/* BILDVORSCHAU IM DIALOG */
+.mwf-img-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    max-width: 90%;
+    aspect-ratio: 4 / 3; /* sorgt für angenehmes Verhältnis */
+    height: auto;
+    max-height: 40vh;
+    overflow: hidden;
+}
+
+.mwf-img-container img.mwf-img-preview {
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* ===================== */
+/* CHECKBOX-LAYOUT */
+.mwf-material-checkbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 10px auto 0 auto;
+    width: fit-content;
+    font-weight: 500;
+    color: black;
+}
+
+.mwf-material-checkbox input[type="checkbox"] {
+    margin: 0;
+    transform: scale(1.1);
+}
+
+/* ===================== */
+/* LABELS */
+.mwf-remote-label {
+    font-size: 0.75em;
+    color: #ccc;
+    margin-left: 72px;
+    margin-top: -4px;
+}
